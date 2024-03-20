@@ -3,8 +3,9 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Project } from './entities/project.entity';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, Repository } from 'typeorm';
 import { User } from 'src/user/entities/user.entity';
+import { GetProjectFilterDto } from './dto/get-project-filter';
 
 @Injectable()
 export class ProjectsService {
@@ -22,8 +23,13 @@ export class ProjectsService {
     return 'This action adds a new project';
   }
 
-  async findAll() {
-    return this.projectRepository.find();
+  async findAll(filters:GetProjectFilterDto) {
+    let where: FindOptionsWhere<Project> = {}
+    if(filters.userId){
+      where = {...where,users:{id: filters.userId}}
+    }
+    return this.projectRepository.find({where});
+
   }
 
   async findOne(id: string) {
