@@ -20,11 +20,14 @@ export class User extends AbstractEntity<User> {
     email: string;
 
     @Column()
+    username: string
+
+    @Column()
     password: string;
 
-    @OneToOne(() => Address , {cascade: true})
+    @OneToOne(() => Address , {cascade: true, nullable: true} )
     @JoinColumn()
-    address:Address
+    address:Address | null
 
     @ManyToMany(() => Project, (project)=>project.users, {cascade: true})
     @JoinTable()

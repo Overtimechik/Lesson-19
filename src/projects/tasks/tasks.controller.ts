@@ -2,7 +2,9 @@ import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from '@nestj
 import { TasksService } from './tasks.service';
 import { CreateTaskDto } from '../dto/create-task.dto';
 import { GetTaskFilterDto } from '../dto/get-task-filter';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags("Задачи")
 @Controller('tasks')
 export class TasksController {
     constructor(

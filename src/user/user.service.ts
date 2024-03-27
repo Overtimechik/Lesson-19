@@ -13,12 +13,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     private readonly entityManager: EntityManager) {}
   
-    async create(createUserDto: CreateUserDto) {
-    const address = new Address(createUserDto.address);
-    const user = new User({...createUserDto, address});
-    await this.entityManager.save(user);
-    return 'Добавлен новый пользователь';
-  }
+
 
   async findAll() {
     return this.userRepository.find({
