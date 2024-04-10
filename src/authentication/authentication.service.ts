@@ -5,6 +5,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/user/entities/user.entity';
 import { Repository, EntityManager } from 'typeorm';
 import * as bcrypt  from 'bcrypt'; 
+import { JwtService } from '@nestjs/jwt';
 
 
 
@@ -12,7 +13,8 @@ import * as bcrypt  from 'bcrypt';
 export class AuthenticationService {
   constructor(
   @InjectRepository(User)
-    private readonly userRepository: Repository<User>
+    private readonly userRepository: Repository<User>,
+    private jwtService: JwtService,
   )
   {}
 
@@ -30,7 +32,9 @@ export class AuthenticationService {
   if (!isMath) {
     throw new HttpException('Некоректный пароль', HttpStatus.UNAUTHORIZED)
   }
-  return 'Пользователь авторизован';
+  const payload = {sub:user.id , username: user.username}
+  const token = await this.jwtService.signAsync(payload)
+  return token;
 }
   async signUp(createUserDto: CreateUserDto) {
     const salt = await bcrypt.genSalt()
