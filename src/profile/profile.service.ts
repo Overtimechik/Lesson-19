@@ -1,6 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { CreateProfileDto } from './dto/create-profile.dto';
-import { UpdateProfileDto } from './dto/update-profile.dto';
+
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from 'src/user/entities/user.entity';
+import { TokenData } from 'src/authentication/types/AuthRequest';
+import { Profile } from './models/profile.model';
 
 @Injectable()
-export class ProfileService {}
+export class ProfileService {
+    constructor(
+        @InjectRepository(User)
+        private readonly userRepository: Repository<User>
+    ){}
+    async getProfile(tokenData:TokenData ){
+        const user = await this.userRepository.findOne({
+            where:{
+                id: tokenData.id,
+            }
+        })
+        return new Profile(user)
+    }
+}

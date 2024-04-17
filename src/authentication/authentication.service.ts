@@ -6,6 +6,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Repository, EntityManager } from 'typeorm';
 import * as bcrypt  from 'bcrypt'; 
 import { JwtService } from '@nestjs/jwt';
+import { TokenData } from './types/AuthRequest';
 
 
 
@@ -32,7 +33,7 @@ export class AuthenticationService {
   if (!isMath) {
     throw new HttpException('Некоректный пароль', HttpStatus.UNAUTHORIZED)
   }
-  const payload = {sub:user.id , username: user.username}
+  const payload:TokenData = {id:user.id}
   const token = await this.jwtService.signAsync(payload)
   return token;
 }
