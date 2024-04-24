@@ -35,16 +35,27 @@ export class AuthenticationService {
   }
   const payload:TokenData = {id:user.id}
   const token = await this.jwtService.signAsync(payload)
-  return token;
+  return JSON.stringify(token);
 }
   async signUp(createUserDto: CreateUserDto) {
+    const useExist = await this.userRepository.count({
+      where: {
+        username: createUserDto.username,
+      }
+    })
+    if(useExist) {
+      throw new HttpException(
+        'Пользователь с таким именем уже существует',
+        HttpStatus.CONFLICT,
+      )
+    }
     const salt = await bcrypt.genSalt()
     const hash = await bcrypt.hash(createUserDto.password,salt)
 
     const user = new User({...createUserDto, password:hash})
     await this.userRepository.save(user)
 
-    return ''
+    return JSON.stringify('Пользователь зарегестрирован');
   }
 
 }
