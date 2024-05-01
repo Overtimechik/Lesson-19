@@ -7,6 +7,7 @@ import { ApiBearerAuth, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { Request} from '@nestjs/common';
 import { AuthRequest } from 'src/authentication/types/AuthRequest';
 import { GetProjectFindAllResponse } from 'src/profile/response/get-project-find-all.response';
+import { GetParticipantsResponse } from './responce/get-participants-response';
 
 @ApiTags("Проекты")
 @ApiBearerAuth()
@@ -25,6 +26,12 @@ export class ProjectsController {
   @Get()
   findAll(@Request() req: AuthRequest){
     return this.projectsService.findAll(req.user);
+  }
+
+  @ApiOkResponse({type:GetParticipantsResponse}) 
+  @Get(':id/participants')
+  findParticipants(@Param('id') id: string){
+    return this.projectsService.findParticipants(id);
   }
 
 }

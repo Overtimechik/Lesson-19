@@ -11,9 +11,9 @@ import { GetProjectFindAllResponse } from './response/get-project-find-all.respo
 @Controller('profile')
 export class ProfileController {
   constructor(private readonly profileService: ProfileService) {}
-  @ApiOkResponse({type:GetProjectFindAllResponse})
   @Get()
   async getProfile(@Request() req:AuthRequest){
     await this.profileService.getProfile(req.user)
   }
+  
 }
