@@ -3,14 +3,11 @@ import { RolesProject } from "../entities/role.entity";
 import { User } from "src/user/entities/user.entity";
 
 export class GetParticipantsResponse {
-    @ApiProperty({example: RolesProject.worker})
-    role:RolesProject
-    @ApiProperty({
-        example: {
-            username:'testnick',
-            firstName:'Герон',
-            lastName:'Геронов'
-        }
-    })
-    user: Pick<User, 'username'|'firstName'|'lastName'>
+        @ApiProperty({example: "Виктор"})
+        firstName: string = ''
+
+        @ApiProperty({example: "Геронов"})
+        lastName: string = ''
+        @ApiProperty({example:'student1'})
+        username: string = ''
 }

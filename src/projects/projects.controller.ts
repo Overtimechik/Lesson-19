@@ -8,6 +8,8 @@ import { Request} from '@nestjs/common';
 import { AuthRequest } from 'src/authentication/types/AuthRequest';
 import { GetProjectFindAllResponse } from 'src/profile/response/get-project-find-all.response';
 import { GetParticipantsResponse } from './responce/get-participants-response';
+import { GetMembersResponse } from './responce/get-members-response';
+import { AddedUserToProjectDTO } from './dto/added-user-to-project.dto';
 
 @ApiTags("Проекты")
 @ApiBearerAuth()
@@ -32,6 +34,20 @@ export class ProjectsController {
   @Get(':id/participants')
   findParticipants(@Param('id') id: string){
     return this.projectsService.findParticipants(id);
+  }
+  @ApiOkResponse({type:GetMembersResponse}) 
+  @Get(':id/members')
+  findMembers(@Param('id') id: string){
+    return this.projectsService.findMembers(id);
+  }
+
+  @Post(':id/members')
+  addedUserToProject(
+    @Param('id') id: string,
+    @Request() req:AuthRequest,
+    @Body() dto:AddedUserToProjectDTO
+  ){
+    return this.projectsService.addedUserToProject(id,req.user,dto)
   }
 
 }
