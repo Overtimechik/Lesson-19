@@ -19,113 +19,146 @@ export class ProjectsService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Role)
-    private readonly rolesProjectRepository: Repository<Role>
-  ){}
-  async create( tokenData: TokenData, createProjectDto: CreateProjectDto){
+    private readonly rolesProjectRepository: Repository<Role>,
+  ) {}
+  async create(tokenData: TokenData, createProjectDto: CreateProjectDto) {
     const user = await this.userRepository.findOne({
-      where: {id: tokenData.id},
-    })
+      where: { id: tokenData.id },
+    });
     const project = new Project(createProjectDto);
 
     await this.projectRepository.save(project);
     await this.rolesProjectRepository.save({
       user,
       project,
-      role:RolesProject.admin
-    })
+      role: RolesProject.admin,
+    });
 
-    return  JSON.stringify('Проект создан');
+    return JSON.stringify('Проект создан');
   }
-  async findParticipants(projectId:string){
-
+  async findParticipants(projectId: string) {
     const users = await this.userRepository.find({
-      relations:{
-        roles:{
-          project:true,
-        }
-      }
-    })
-    const particpants:GetParticipantsResponse[] = []
-    for( const user of users){
-        const projectIds = user.roles.map((item) => item.project.id)
-        if(projectIds.includes(projectId)) continue;
+      relations: {
+        roles: {
+          project: true,
+        },
+      },
+    });
+    const particpants: GetParticipantsResponse[] = [];
+    for (const user of users) {
+      const projectIds = user.roles.map((item) => item.project.id);
+      if (projectIds.includes(projectId)) continue;
 
-        particpants.push({
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-        })
+      particpants.push({
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      });
     }
-    return particpants
+    return particpants;
   }
-  async findMembers(projectId:string){
+
+  async update(projectId: string, updateProjectDto: UpdateProjectDto) {
+    if (updateProjectDto.name) {
+      await this.projectRepository.save({
+        id: projectId,
+        name: updateProjectDto.name,
+      });
+    }
+    for (const userName of updateProjectDto.users) {
+      const user = await this.userRepository.findOne({
+        where: {
+          username: userName,
+        },
+      });
+      const checkUserCreated = await this.rolesProjectRepository.findOne({
+        where: {
+          user: {
+            id: user.id,
+          },
+          project: {
+            id: projectId,
+          },
+        },
+      });
+      if (checkUserCreated) continue;
+
+      await this.rolesProjectRepository.save({
+        user: { id: user.id },
+        project: { id: projectId },
+        role: RolesProject.worker,
+      });
+      return JSON.stringify('Проект обновлен');
+    }
+  }
+  async findMembers(projectId: string) {
     return this.rolesProjectRepository.find({
       where: {
-        project:{
-          id:projectId
-        }
+        project: {
+          id: projectId,
+        },
       },
-      relations:{
-        user: true
+      relations: {
+        user: true,
       },
-      select:{
-        role:true,
-        user:{
-          firstName:true,
-          username:true,
-          lastName:true
-        }
-      }
-    })
+      select: {
+        role: true,
+        user: {
+          firstName: true,
+          username: true,
+          lastName: true,
+        },
+      },
+    });
   }
   async addedUserToProject(
-    projectId:string,
-    tokenData:TokenData,
-    dto: AddedUserToProjectDTO
-  ){
+    projectId: string,
+    tokenData: TokenData,
+    dto: AddedUserToProjectDTO,
+  ) {
     const user = await this.rolesProjectRepository.findOne({
       where: {
-        user:{
-          id:tokenData.id,
-        },
-        project:{
-          id:projectId
-        }
-      }
-    })
-    if(user.role !== RolesProject.admin){
-      throw new HttpException(
-        'У вас недостаточно прав, что бы добавлять пользователей в проект',
-        HttpStatus.CONFLICT
-      )
-    }
-    const member = await this.userRepository.findOne({
-      where:{
-        username:dto.username,
-      }
-    })
-    const project = await this.projectRepository.findOne({
-      where:{
-        id:projectId,
-      }
-    })
-    await this.rolesProjectRepository.save({
-      role: dto.role || RolesProject.worker,
-      user:member,
-      project:project
-    })
-
-    return `Пользователь ${dto.username} добавлен`
-  }
-  async findAll(tokenData:TokenData) {
-    return this.projectRepository.find({
-      where:{ roles:{
         user: {
           id: tokenData.id,
-        }
-      }}
-    })
+        },
+        project: {
+          id: projectId,
+        },
+      },
+    });
+    if (user.role !== RolesProject.admin) {
+      throw new HttpException(
+        'У вас недостаточно прав, что бы добавлять пользователей в проект',
+        HttpStatus.CONFLICT,
+      );
+    }
+    const member = await this.userRepository.findOne({
+      where: {
+        username: dto.username,
+      },
+    });
+    const project = await this.projectRepository.findOne({
+      where: {
+        id: projectId,
+      },
+    });
+    await this.rolesProjectRepository.save({
+      role: dto.role || RolesProject.worker,
+      user: member,
+      project: project,
+    });
 
+    return `Пользователь ${dto.username} добавлен`;
   }
-
+  async findAll(tokenData: TokenData) {
+    return this.projectRepository.find({
+      where: {
+        roles: {
+          user: {
+            id: tokenData.id,
+          },
+        },
+      },
+    });
+  }
 }
