@@ -67,6 +67,9 @@ export class TasksService {
         },
       },
       where,
+      order: {
+        startDate: 'DESC',
+      },
     });
   }
   async update(id: string, updateTaskDto: UpdateTaskDto) {
@@ -76,6 +79,6 @@ export class TasksService {
   }
   async remove(id: string) {
     await this.tasksRepository.delete({ id });
-    return 'Task deleted successfully';
+    return JSON.stringify('Task deleted successfully');
   }
 }

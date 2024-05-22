@@ -1,3 +1,4 @@
+import { UpdateUserDto } from './../user/dto/update-user.dto';
 import { AddedUserToProjectDTO } from './dto/added-user-to-project.dto';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -10,6 +11,7 @@ import { GetProjectFilterDto } from './dto/get-project-filter';
 import { TokenData } from 'src/authentication/types/AuthRequest';
 import { Role, RolesProject } from './entities/role.entity';
 import { GetParticipantsResponse } from './responce/get-participants-response';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @Injectable()
 export class ProjectsService {
@@ -58,6 +60,69 @@ export class ProjectsService {
     return particpants;
   }
 
+  async updateRole(
+    projectid: string,
+    updateRoleDto: UpdateRoleDto,
+    token: TokenData,
+  ) {
+    const isAdmin = await this.rolesProjectRepository.count({
+      where: {
+        role: RolesProject.admin,
+        user: {
+          id: token.id,
+        },
+        project: {
+          id: projectid,
+        },
+      },
+    });
+    if (!isAdmin) {
+      throw new HttpException('Вы не администратор', HttpStatus.CONFLICT);
+    }
+
+    const oldRole = await this.rolesProjectRepository.findOne({
+      where: {
+        user: {
+          username: updateRoleDto.username,
+        },
+        project: {
+          id: projectid,
+        },
+      },
+    });
+    await this.rolesProjectRepository.update(oldRole.id, {
+      role: updateRoleDto.role,
+    });
+  }
+
+  async deleteRole(projectid: string, username: string, token: TokenData) {
+    const isAdmin = await this.rolesProjectRepository.count({
+      where: {
+        role: RolesProject.admin,
+        user: {
+          id: token.id,
+        },
+        project: {
+          id: projectid,
+        },
+      },
+    });
+    if (!isAdmin) {
+      throw new HttpException('Вы не администратор', HttpStatus.CONFLICT);
+    }
+
+    const oldRole = await this.rolesProjectRepository.findOne({
+      where: {
+        user: {
+          username: username,
+        },
+        project: {
+          id: projectid,
+        },
+      },
+    });
+    await this.rolesProjectRepository.remove(oldRole);
+  }
   async update(projectId: string, updateProjectDto: UpdateProjectDto) {
     if (updateProjectDto.name) {
       await this.projectRepository.save({
@@ -91,6 +156,7 @@ export class ProjectsService {
       return JSON.stringify('Проект обновлен');
     }
   }
+
   async findMembers(projectId: string) {
     return this.rolesProjectRepository.find({
       where: {

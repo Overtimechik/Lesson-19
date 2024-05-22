@@ -19,6 +19,7 @@ import { GetProjectFindAllResponse } from 'src/profile/response/get-project-find
 import { GetParticipantsResponse } from './responce/get-participants-response';
 import { GetMembersResponse } from './responce/get-members-response';
 import { AddedUserToProjectDTO } from './dto/added-user-to-project.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @ApiTags('Проекты')
 @ApiBearerAuth()
@@ -42,6 +43,22 @@ export class ProjectsController {
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateProjectDto: UpdateProjectDto) {
     return this.projectsService.update(id, updateProjectDto);
+  }
+  @Patch(':id/role')
+  updateRole(
+    @Request() req: AuthRequest,
+    @Param(':id') id: string,
+    @Body() updateRoleDto: UpdateRoleDto,
+  ) {
+    return this.projectsService.updateRole(id, updateRoleDto, req.user);
+  }
+  @Delete(':id/user')
+  removeRole(
+    @Request() req: AuthRequest,
+    @Param(':id') id: string,
+    @Body() username: string,
+  ) {
+    return this.projectsService.deleteRole(id, username, req.user);
   }
 
   @ApiOkResponse({ type: GetParticipantsResponse })
